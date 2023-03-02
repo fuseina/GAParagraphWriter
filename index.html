@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html>
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+<head>
+
+	
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<title>GA Paragraph Writer</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet">
+	<script>
+	
+		function copyGeneratedText() {
+		  // Get the text field
+		  var copyText = document.getElementById("paragraphGeneratedText").innerHTML;
+
+	      // Copy the text inside the text field
+		  navigator.clipboard.writeText(copyText);
+
+		  // Alert the copied text
+		  document.getElementById("textCopiedConfirmation").hidden=false;
+		  setTimeout(function() {document.getElementById("textCopiedConfirmation").hidden=true;},1200);
+		}
+		  
+		function removePlaceHolder(fieldName){
+			var placeholder = getPlaceHolderForAdditionalHealthChallenges()
+			var elementId = "otherHealthChallengesText"
+			var content = ''
+			
+			if(fieldName === "treatmentSummary"){
+				placeholder = getPlaceHolderForTreatmentSummary()
+				elementId = "treatmentSummary"
+			}
+			
+			content = document.getElementById(elementId).innerHTML
+			
+			if(content === placeholder) {
+				document.getElementById(elementId).innerHTML = ""
+			}
+		}
+
+		function getPlaceHolderForTreatmentSummary(){
+			return "ENTER TREATMENT SUMMARY"
+		}
+  
+		function setPlaceHolderForTreatmentSummary(){
+			var placeholder = getPlaceHolderForTreatmentSummary()
+			var treatmentSummaryText = document.getElementById("treatmentSummary").innerHTML
+
+			if(!treatmentSummaryText || treatmentSummaryText.trim() === '') {
+				document.getElementById("treatmentSummary").innerHTML = placeholder
+			}
+		}
+  
+		function getPlaceHolderForAdditionalHealthChallenges(){
+			return "(Additional Health Challenges Text)"
+		}
+  
+		function setPlaceHolderForAdditionalHealthChallenges(){
+			var additionalHealthNeedsText = document.getElementById("otherHealthChallengesText").innerHTML
+			
+			var placeholder = getPlaceHolderForAdditionalHealthChallenges()
+
+			if(!additionalHealthNeedsText || additionalHealthNeedsText.trim() === '') {
+				document.getElementById("otherHealthChallengesText").innerHTML = placeholder
+			}
+		}
+  
+		function setMaxDateAllowed(){
+			var today = new Date();
+			var dd = today.getDate();
+			var mm = today.getMonth() + 1; //January is 0!
+			var yyyy = today.getFullYear();
+
+			if (dd < 10) {
+			   dd = '0' + dd;
+			}
+
+			if (mm < 10) {
+			   mm = '0' + mm;
+			} 
+				
+			today = yyyy + '-' + mm + '-' + dd;
+			document.getElementById("seenOn").setAttribute("max", today);
+		}
+		
+	
+		
+		function validateDate() {
+			try {
+				var seenOnYYYYMMDD = document.getElementById("seenOn").value
+				var enteredDate = new Date(seenOnYYYYMMDD)
+				var today = new Date(document.getElementById("seenOn").max)
+				
+				if(enteredDate > today){
+					alert("Date entered is in the future")
+					document.getElementById("errorMessage").innerHTML = "Date entered is in the future"
+				} else {
+					document.getElementById("errorMessage").innerHTML = ""
+				}
+			} catch(error) {
+				console.log(error)
+			}
+		}
+  
+		function validateAge(){
+			var age = document.getElementById("age").value
+			if(age < 2 || age > 65){
+				document.getElementById("errorMessage").innerHTML = "Age must be between 2 and 65"
+				alert("Age must be between 2 and 65")
+			} else {
+				document.getElementById("errorMessage").innerHTML = ""
+				generateParagraph()
+			}
+		}
+
+		function toggleHealthConcerns() {
+			var hasHealthConcerns = document.getElementsByName("patientHasHealthConcernsOption")
+			
+			var doesPatientHaveHealthConcerns = "yes"
+			
+			for(let i = 0; i<hasHealthConcerns.length; i++){
+				doesPatientHaveHealthConcerns = hasHealthConcerns[i].checked ? hasHealthConcerns[i].value : doesPatientHaveHealthConcerns;
+			}
+				
+			document.getElementById("hasAdditionalHealthConcernsSpan").hidden = (doesPatientHaveHealthConcerns === "no")
+			
+			generateParagraph()
+
+		} 
+
+
+		function toggleTooYoungForInOfficeTreatment() {
+			var tooYoungOptions = document.getElementsByName("tooYoungForInOfficeTreatmentOption")
+			
+			var isTooYoungForInOfficeTreatment = "yes"
+			
+			for(let i = 0; i<tooYoungOptions.length; i++){
+				isTooYoungForInOfficeTreatment = tooYoungOptions[i].checked ? tooYoungOptions[i].value : isTooYoungForInOfficeTreatment;
+			}
+			
+			document.getElementById("tooYoungForInOfficeSpan").hidden = (isTooYoungForInOfficeTreatment === "no")
+			
+			generateParagraph()
+
+		} 
+		
+		function toggleOralConsciousSedationSection() {
+			var oralConsciousSedationSectionOptions = document.getElementsByName("displayOralConsciousSedationSectionOption")
+			
+			var displayOralConsciousSedationSection = "yes"
+			
+			for(let i = 0; i<oralConsciousSedationSectionOptions.length; i++){
+				displayOralConsciousSedationSection = oralConsciousSedationSectionOptions[i].checked ? oralConsciousSedationSectionOptions[i].value : displayOralConsciousSedationSection;
+			}
+			
+			document.getElementById("oralConsciousSedationSpan").hidden = (displayOralConsciousSedationSection === "no")
+			
+			generateParagraph()
+
+		} 
+
+
+		function setName() {
+			var patientName = document.getElementById("patientNameInput").value
+			var listOfNameElements = document.getElementsByName("displayName")
+			
+			for(let i = 0; i<listOfNameElements.length; i++){
+				listOfNameElements[i].innerHTML = patientName;
+			}
+			
+		} 
+		
+		
+		function setLastName() {
+			var patientFirstName = document.getElementById("patientNameInput").value
+			var patientLastName = document.getElementById("patientLastNameInput").value
+			var listOfNameElements = document.getElementsByName("displayFullName")
+			
+			for(let i = 0; i<listOfNameElements.length; i++){
+				listOfNameElements[i].innerHTML = patientFirstName+" "+patientLastName;
+			}
+			
+		} 
+
+		function determineAOrAnUse(age){
+			if(age == 8 || age == 11 || age == 18)
+				return "an"
+			if(age>=80 && age<=89)
+				return "an"
+			else return "a"
+		}
+
+		function replaceAtIndex(_string,_index,_newValue) {
+    			if(_index > _string.length-1) {
+        			return string
+    			}
+    			else {
+    				return _string.substring(0,_index) + _newValue + _string.substring(_index+1)
+    			}
+		}
+
+		function generateParagraph() {
+
+			document.getElementById("adultOrChild").size = 5
+
+			var patientsName = document.getElementById("patientNameInput").value
+			
+			var patientsFullName = patientsName + " "+document.getElementById("patientLastNameInput").value 
+			
+			
+			var age = document.getElementById("age").value
+
+			var aOrAn = determineAOrAnUse(age)
+			
+			var adultOrChildText = "child"
+			
+			if(age>=18){
+				document.getElementById("adultOrChild").innerHTML = "adult"
+				adultOrChildText = "adult"
+			} else {
+				document.getElementById("adultOrChild").innerHTML = "child"
+			}
+			
+			
+			var childAdult = document.getElementById("adultOrChild").innerHTML
+			
+			var placeSeen = document.getElementById("placeSeen").value
+			
+			var seenOnYYYYMMDD = document.getElementById("seenOn").value
+			
+			var seenOnArray = seenOnYYYYMMDD ? seenOnYYYYMMDD.split("-") : '---'; 
+			
+			var seenOn = `${seenOnArray[1]}/${seenOnArray[2]}/${seenOnArray[0]}`
+			
+			var cooperatedOrNot  = document.getElementById("cooperatedOrNot").value
+			
+			var oralConsciousSedationReasonList = document.getElementById("oralConsciousSedationReason")
+			var oralConsciousSedationSelectedIndex = oralConsciousSedationReasonList.selectedIndex
+			var oralConsciousSedationText = `Oral conscious sedation is not indicated due to ${oralConsciousSedationReasonList.options[oralConsciousSedationSelectedIndex].text}`
+				
+			var tooYoungForInOfficeTreatmentText  = `Due to ${patientsName}'s young age and the extensive treatment that is needed, ${patientsName} is not a candidate for in-office treatment.`
+			
+			var treatmentSummary = document.getElementById("treatmentSummary").innerHTML	
+			treatmentSummary = `${patientsName} will need ${treatmentSummary}.`
+
+			var additionalHealthNeedsText = document.getElementById("otherHealthChallengesText").innerHTML
+			additionalHealthNeedsText = additionalHealthNeedsText && additionalHealthNeedsText !== getPlaceHolderForAdditionalHealthChallenges() ? additionalHealthNeedsText : ''
+			
+			var additionalHealthNeedsList = document.getElementsByName("additionalHealthConcerns")
+
+			var checkedHealthNeeds = []
+			
+
+			for(let i = 0; i<additionalHealthNeedsList.length; i++){
+				if(additionalHealthNeedsList[i].checked) {
+					checkedHealthNeeds.push(additionalHealthNeedsList[i])
+				}
+			}
+			
+			for(let i = 0; i<checkedHealthNeeds.length; i++){
+				additionalHealthNeedsText = additionalHealthNeedsText ? `${checkedHealthNeeds[i].value}, ${additionalHealthNeedsText}` : `${checkedHealthNeeds[i].value}`
+			}
+
+			var lastCommaIndex = additionalHealthNeedsText.lastIndexOf(",")
+
+			additionalHealthNeedsText = lastCommaIndex > 0 ? replaceAtIndex(additionalHealthNeedsText,lastCommaIndex, ", and") : additionalHealthNeedsText 
+			
+			
+
+			additionalHealthNeedsText = `${patientsName} has additional health challenges that include: ${additionalHealthNeedsText}.`
+			
+			
+			var paragraphText = `${patientsFullName} is ${aOrAn} ${age}-year-old ${childAdult} who was seen at the University of Iowa ${placeSeen} on ${seenOn}. ${patientsName} has extensive and complex dental needs and was ${cooperatedOrNot} for the exam and x-rays.`
+
+			paragraphText = `${paragraphText} ${treatmentSummary}`
+
+			if (!document.getElementById("hasAdditionalHealthConcernsSpan").hidden){
+				paragraphText = `${paragraphText} ${additionalHealthNeedsText}`
+			}
+			
+			if (!document.getElementById("tooYoungForInOfficeSpan").hidden){
+				paragraphText = `${paragraphText} ${tooYoungForInOfficeTreatmentText}`
+			}
+			
+			if (!document.getElementById("oralConsciousSedationSpan").hidden){
+				paragraphText = `${paragraphText} ${oralConsciousSedationText}`
+			}
+			
+			paragraphText = `${paragraphText} If treatment is not completed under general anesthesia, ${patientsName} may have a traumatic emotional experience in the dental chair resulting in a lifetime of extreme fear and anxiety of the dentist. Thus, it is imperative that this treatment is accomplished in the operating room under general anesthesia for ${patientsName}’s safety both physically and emotionally.`
+
+			document.getElementById("paragraphGeneratedText").innerHTML = paragraphText
+
+		} 
+
+	</script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+	<style type="text/css">
+		div{
+			line-height: 2;
+		}
+		
+		/* Chrome, Safari, Edge, Opera remove the up down arrows for number fields*/
+		input::-webkit-outer-spin-button,
+		input::-webkit-inner-spin-button {
+		  -webkit-appearance: none;
+		  margin: 0;
+		}
+		
+		input[type=number] {
+		  -moz-appearance: textfield;
+		}
+		
+		input {
+			border:none; 
+			border-bottom:solid
+		}
+		
+		input:focus {
+			outline: none;
+			border:none; 
+			box-shadow: 0 3PT 0 0 #FFD700;   
+		}
+		
+		select, select:focus {
+			border:none; 
+			border-bottom:solid;
+			outline: none;
+		}
+		
+		select:focus {
+			box-shadow: 0 3PT 0 0 #FFD700;   
+		}
+		
+		span:focus {
+			outline: none;
+			box-shadow: 0 3PT 0 0 #FFD700;  
+		}
+		
+		.otherHealthChallengesClass {
+			 border-bottom: solid 1px black;
+		}
+		
+		.treatmentSummaryClass {
+			 border-bottom: solid 1px black;
+		}
+	</style>
+</head>
+<body onload="setPlaceHolderForAdditionalHealthChallenges(); setPlaceHolderForTreatmentSummary()">
+<div class="container-fluid p-2 bg-dark text-warning text-center">
+  <span style="font-weight:bold; font-size:18px">Patient Notes <span style="font-weight:bold; font-size:12px">&nbsp;by Fuseina and Asana Mohamad</span> </span>
+</div>
+
+<div class="container mt-5">
+  <div class="row">
+    <div class="col-sm-6">
+      <p>
+			<span id="errorMessage" style="color:red; font-weight:bold"></span>
+			<br>
+			<b>Patient's name:</b> <input id="patientNameInput" style="border:none; border-bottom:groove " onkeyup="setName(); generateParagraph()"></input>
+			<br>
+			<b>Patient's Last Name:</b> <input id="patientLastNameInput" style="border:none; border-bottom:groove " onkeyup="setLastName(); generateParagraph()"></input>
+			<br><br>
+			
+			<b>Does <span name="displayName" class="patientNameDisplay"></span> have additional health concerns?</b>
+			Yes <input type = "radio" name="patientHasHealthConcernsOption" value="yes" onclick="toggleHealthConcerns()" checked>
+			No <input type = "radio" name="patientHasHealthConcernsOption" value="no" onclick="toggleHealthConcerns()">
+			
+			<br>
+			
+			<b>Is <span name="displayName" class="patientNameDisplay"></span> too young for in-office treatment?</b>
+			
+			Yes <input type = "radio" name="tooYoungForInOfficeTreatmentOption" value="yes" checked onclick="toggleTooYoungForInOfficeTreatment()">
+			No <input type = "radio" name="tooYoungForInOfficeTreatmentOption" value="no" onclick="toggleTooYoungForInOfficeTreatment()">
+			
+			<br>
+			
+			<b>Include oral conscious sedation section?</b>
+			
+			Yes <input type = "radio" name="displayOralConsciousSedationSectionOption" value="yes" checked onclick="toggleOralConsciousSedationSection()">
+			No <input type = "radio" name="displayOralConsciousSedationSectionOption" value="no" onclick="toggleOralConsciousSedationSection()">
+			 
+			<br><br>
+			
+				
+			<span name="displayName" class="patientNameDisplay"></span> is a 
+			<input type="number" size="2" min="2" max="65" id="age" onfocusout="validateAge();"></input>-year-old 
+			<span id="adultOrChild"></span>
+			
+			who was seen at the University of Iowa <select id="placeSeen" onchange="generateParagraph()"><option value="College of Dentistry">College of Dentistry</option><option value="Center for Disabilities and Development">Center for Disabilities and Development</option></select>  
+			
+			on <input type="date" id="seenOn" onfocus="setMaxDateAllowed()" onfocusout="validateDate()" onchange="generateParagraph()"></input>. 
+			
+			<br><br><span name="displayName" class="patientNameDisplay"></span> has extensive and complex dental needs and was  	<select id="cooperatedOrNot" onchange="generateParagraph()"><option value="uncooperative">uncooperative</option><option value="somewhat cooperative">somewhat cooperative</option><option value="cooperative">cooperative</option></select> for the exam and x-rays. 
+
+			
+			<br><span name="displayName" class="patientNameDisplay"></span> will need&nbsp;&nbsp;<span contenteditable="true" class="treatmentSummaryClass" id="treatmentSummary" onfocusin="removePlaceHolder('treatmentSummary')" onfocusout="setPlaceHolderForTreatmentSummary(); generateParagraph()" onkeyup="generateParagraph()"></span>.
+
+			
+			<span id="hasAdditionalHealthConcernsSpan">
+				<br><br><span name="displayName" class="patientNameDisplay"></span> has additional health challenges that include:
+				<br>
+
+				<input type="checkbox" name="additionalHealthConcerns" onchange="generateParagraph()" value="ADD/ADHD"> ADD/ADHD
+
+				<input type="checkbox" name="additionalHealthConcerns" onchange="generateParagraph()" value="anxiety"> anxiety
+
+				<input type="checkbox" name="additionalHealthConcerns" onchange="generateParagraph()" value="autism"> autism
+				
+				<input type="checkbox" name="additionalHealthConcerns" onchange="generateParagraph()" value="cancer"> cancer
+				
+				<input type="checkbox" name="additionalHealthConcerns" onchange="generateParagraph()" value="cardiac problems"> cardiac problems 
+				
+				<br> <input type="checkbox" name="additionalHealthConcerns" onchange="generateParagraph()" value="cerebral palsy"> cerebral palsy 
+				
+				<input type="checkbox" name="additionalHealthConcerns" onchange="generateParagraph()" value="Down Syndrome">Down Syndrome
+				
+				<input type="checkbox" name="additionalHealthConcerns" onchange="generateParagraph()" value="intellectual delay"> intellectual delay 
+				
+				<input type="checkbox" name="additionalHealthConcerns" onchange="generateParagraph()" value="obsessive compulsive disorder (OCD)"> obsessive compulsive disorder (OCD)
+
+				<input type="checkbox" name="additionalHealthConcerns" onchange="generateParagraph()" value="oppositional defiant disorder (ODD)"> opppositional defiant disorder (ODD)
+				
+				<input type="checkbox" name="additionalHealthConcerns" onchange="generateParagraph()" value="post-traumatic stress disorder (PTSD)"> post-traumatic stress disorder (PTSD)
+
+				<br>Other:&nbsp;&nbsp;<span contenteditable="true" class="otherHealthChallengesClass" id="otherHealthChallengesText" onfocusin="removePlaceHolder('otherHealthChallenges')" onfocusout="setPlaceHolderForAdditionalHealthChallenges(); generateParagraph()" onkeyup="generateParagraph()"></span> 
+				
+				
+			</span>
+			
+			<span id="tooYoungForInOfficeSpan">
+				<br><br>
+				Due to <span name="displayName" class="patientNameDisplay"></span>’s young age and the extensive treatment that is needed, <span name="displayName" class="patientNameDisplay"></span> is not a candidate for in-office treatment.
+			</span>
+			
+			<span id="oralConsciousSedationSpan">
+				Oral conscious sedation is not indicated due to <select id="oralConsciousSedationReason" onchange="generateParagraph()"><option value="noRadiographs">the inability to obtain diagnostic radiographs in clinic.</option><option value="extensiveTreatment">the extensive treatment plan.</option><option value="currentHealth">current health conditions and/or medical status.</option></select>
+			</span>
+		</p>
+
+    </div>
+	<div class="col-sm-1">
+    </div>
+    <div class="col-sm-5 text-center">
+		<button align="center" type="button" class="btn btn-warning" onclick="copyGeneratedText()"><b>Copy text</b></button>
+		<br>
+		<span id="textCopiedConfirmation" hidden="true" style="font-weight:bold; font-size:15px">🦷 😃 🪥 Text Copied 🪥 😃 🦷</span>
+		<br>
+		<p id="paragraphGeneratedText" style="font-weight:bold; font-size:18px"></p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
